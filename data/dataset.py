@@ -44,11 +44,14 @@ import sys
 import glob
 import urllib
 import zipfile
+import logging
+logger = logging.getLogger("geolife.dataset")
 
 # Direct link to the GeoLife ZIP archive.
 # Valid as of 11 July, 2016.
 #GEOLIFE_ZIP_ARCHIVE_URL="https://download.microsoft.com/download/F/4/8/F4894AA5-FDBC-481E-9285-D5F8C4C4F039/Geolife%20Trajectories%201.3.zip"
-GEOLIFE_ZIP_ARCHIVE_URL="https://download.microsoft.com/download/F/4/8/TOTS_INVALID"
+#GEOLIFE_ZIP_ARCHIVE_URL="http://web.mst.edu/~djmvfb/super_secret/invalid"
+GEOLIFE_ZIP_ARCHIVE_URL="http://web.mst.edu/~djmvfb/super_secret/sample.zip"
 
 # If the above URL is no longer valid, navigate to this page and manually
 # download the dataset.
@@ -66,38 +69,41 @@ def verify(directory="."):
     except PLXNotFound, e:
         # If no PLX files exist in the directory, then check if a ZIP archive
         # exists. If no ZIP archive exists, download it.
-        print("GeoLife PLX files not found in '{0}'. Checking for ZIP"
-              " archive.".format(directory))
+        logger.warning("GeoLife PLX files not found in '{0}'. Checking for ZIP"
+                       " archive.".format(directory)
+        )
 
         zip_files = glob.glob(os.path.join(directory, "*.zip"))
         if not zip_files:
-            print("No GeoLife ZIP archive. Proceeding with download.")
+            logger.warning("No GeoLife ZIP archive. Proceeding with download.")
             geolife_zip = download(url=GEOLIFE_ZIP_ARCHIVE_URL)
 
         else:
             geolife_zip = zip_files[0]
-            print("GeoLife ZIP archive found at '{0}'".format(geolife_zip))
+            logger.info("GeoLife ZIP archive found at '{0}'".format(
+              geolife_zip
+            ))
 
         unpack(archive=geolife_zip, to=directory)
 
         try:
-                dataset_root = find_geolife_root(directory)
+            dataset_root = find_geolife_root(directory)
 
         except Exception, e:
-                print(e)
-                traceback.print_exc()
-                sys.exit(
-                    "UNEXPECTED ERROR: Unpacking the ZIP at '{zip}' did not"
-                    " result in PLX files. Perhaps '{zip}' is not a ZIP"
-                    " archive of the GeoLife files.\n"
-                    "Please visit '{geolife_page}' and manually download"
-                    " the GeoLife dataset. Make sure to place the ZIP"
-                    " archive in the directory '{abs_path}' and try"
-                    " executing this script again.".format(
-                        zip=geolife_zip, 
-                        geolife_page=GEOLIFE_DOWNLOAD_PAGE,
-                        abs_path=os.path.abspath(directory)
-                ))
+            logger.error(e)
+            traceback.print_exc()
+            sys.exit(
+                "UNEXPECTED ERROR: Unpacking the ZIP at '{zip}' did not"
+                " result in PLX files. Perhaps '{zip}' is not a ZIP"
+                " archive of the GeoLife files.\n"
+                "Please visit '{geolife_page}' and manually download"
+                " the GeoLife dataset. Make sure to place the ZIP"
+                " archive in the directory '{abs_path}' and try"
+                " executing this script again.".format(
+                    zip=geolife_zip, 
+                    geolife_page=GEOLIFE_DOWNLOAD_PAGE,
+                    abs_path=os.path.abspath(directory)
+            ))
 
     return dataset_root
 
@@ -119,7 +125,7 @@ def find_geolife_root(directory_to_search, just_downloaded=False):
     geolife_root = os.path.abspath(
         os.path.dirname(os.path.dirname(directory_containing_plt))
     )
-    print("GeoLife dataset found within '{0}'".format(geolife_root))
+    logger.info("GeoLife dataset found within '{0}'".format(geolife_root))
     return geolife_root
 
 
@@ -127,13 +133,16 @@ def download(url):
     """
     Download the GeoLife dataset from Microsoft Research.
     """
-    print("Downloading from '{0}'. Please be patient.".format(url))
-    print("After this run, downloading shouldn't have to be performed again")
+    logger.info("Downloading from '{0}'. Please be patient.".format(url))
+    logger.info(
+        "After this run, downloading shouldn't have to be performed again"
+    )
     downloader = urllib.URLopener()
     download_to = os.path.join(".", "geolife.zip")
 
     try:
         downloader.retrieve(url, download_to)
+
     except Exception, e:
         sys.exit(
             "UNEXPECTED ERROR: It appears the download url '{url}' is no"
@@ -145,7 +154,7 @@ def download(url):
                 abs_path=os.path.abspath(download_to)
         ))
 
-    print("Download complete!")
+    logger.info("Download complete!")
     return download_to
 
 
@@ -153,19 +162,49 @@ def unpack(archive, to):
     """
     Unpack the zip archive.
     """
-    print("Unpacking ZIP archive '{0}' to '{1}'. Please be patient.".format(
-        archive, to
+    logger.info(
+        "Unpacking ZIP archive '{0}' to '{1}'. Please be patient.".format(
+            archive, to
     ))
-    print("After this run, unpacking shouldn't have to be performed again")
+    logger.info(
+        "After this run, unpacking shouldn't have to be performed again"
+    )
     unzipper = zipfile.ZipFile(archive, 'r')
     unzipper.extractall(to)
     unzipper.close()
-    print("Unpacking complete!")
+    logger.info("Unpacking complete!")
 
 
 class PLXNotFound(IOError):
     def __init__(self,*args,**kwargs):
         IOError.__init__(self,*args,**kwargs)
+
+
+def setup_logger(args):
+    # create logger with 'spam_application'
+    logger.setLevel(logging.DEBUG)
+    # create file handler which logs even debug messages
+    fh = logging.FileHandler('geolife.dataset.log')
+    fh.setLevel(logging.DEBUG)
+    # create console handler with a higher log level
+    ch = logging.StreamHandler()
+
+    if args.verbose:
+        ch.setLevel(logging.DEBUG)
+
+    else:
+        ch.setLevel(logging.INFO)
+
+    # create formatter and add it to the handlers
+    fh.setFormatter(logging.Formatter(
+      '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    ))
+    ch.setFormatter(logging.Formatter(
+      '%(levelname)s - %(message)s'
+    ))
+    # add the handlers to the logger
+    logger.addHandler(fh)
+    logger.addHandler(ch)
 
 
 if __name__ == '__main__':
@@ -183,17 +222,16 @@ if __name__ == '__main__':
                             help="directory where GeoLife dataset is stored")
         args = parser.parse_args()
 
-        if args.verbose:
-            print(start_time)
+        setup_logger(args)
+        logger.debug(start_time)
 
         verify(args.directory)
 
-        if args.verbose:
-            finish_time = datetime.now()
-            print(finish_time)
-            print('Execution time: {time}'.format(
-                time=(finish_time - start_time)
-            ))
+        finish_time = datetime.now()
+        logger.debug(finish_time)
+        logger.debug('Execution time: {time}'.format(
+            time=(finish_time - start_time)
+        ))
 
         sys.exit(0)
 
@@ -204,7 +242,7 @@ if __name__ == '__main__':
         raise e
 
     except Exception, e:
-        print(e)
+        logger.critical(e)
         traceback.print_exc()
         sys.exit("ERROR, UNEXPECTED EXCEPTION")
 
