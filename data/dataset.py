@@ -2,21 +2,25 @@
 """
 SYNOPSIS
 
-    TODO helloworld [-h,--help] [-v,--verbose] [--version]
+    python dataset.py [-h,--help] [-v,--verbose] [-d,--directory DIRECTORY]
 
 DESCRIPTION
 
-    TODO This describes how to use this script. This docstring
-    will be printed by the script if there is an error or
-    if the user requests help (-h or --help).
+    Assert the existence of the GeoLife dataset within the specified DIRECTORY.
+    If the dataset is not present, this script will first see if a ZIP archive
+    is within that directory and will unpack it. If no ZIP archive exists, it
+    will download the GeoLife dataset, unpack it, and confirm the unpacking
+    resulted in PLX files now existing somewhere under the specified DIRECTORY.
 
-EXAMPLES
+    This script can be used as a stand-alone script or imported into another
+    Python script as a module.
 
-    TODO: Show some examples of how to use this script.
+ARGUMENTS
 
-EXIT STATUS
-
-    TODO: List exit codes
+  -h, --help            show this help message and exit
+  -v, --verbose         verbose output
+  -d DIRECTORY, --directory DIRECTORY
+                        directory where GeoLife dataset is stored
 
 AUTHOR
 
@@ -30,9 +34,6 @@ LICENSE
     License Agreement that is described in its user guide that is included in
     its ZIP archive.
 
-VERSION
-
-    $Id$
 """
 
 import traceback
@@ -45,8 +46,7 @@ import urllib
 import zipfile
 
 
-#GEOLIFE_ZIP_ARCHIVE_URL="https://download.microsoft.com/download/F/4/8/F4894AA5-FDBC-481E-9285-D5F8C4C4F039/Geolife%20Trajectories%201.3.zip"
-GEOLIFE_ZIP_ARCHIVE_URL="http://web.mst.edu/~djmvfb/super_secret/sample.zip"
+GEOLIFE_ZIP_ARCHIVE_URL="https://download.microsoft.com/download/F/4/8/F4894AA5-FDBC-481E-9285-D5F8C4C4F039/Geolife%20Trajectories%201.3.zip"
 
 
 def verify(directory="."):
