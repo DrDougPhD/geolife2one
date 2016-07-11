@@ -89,10 +89,8 @@ def verify(directory="."):
         try:
             dataset_root = find_geolife_root(directory)
 
-        except Exception, e:
-            logger.error(e)
-            traceback.print_exc()
-            sys.exit(
+        except Exception:
+            logger.exception(
                 "UNEXPECTED ERROR: Unpacking the ZIP at '{zip}' did not"
                 " result in PLX files. Perhaps '{zip}' is not a ZIP"
                 " archive of the GeoLife files.\n"
@@ -104,6 +102,7 @@ def verify(directory="."):
                     geolife_page=GEOLIFE_DOWNLOAD_PAGE,
                     abs_path=os.path.abspath(directory)
             ))
+            sys.exit(1)
 
     return dataset_root
 
@@ -143,16 +142,16 @@ def download(url):
     try:
         downloader.retrieve(url, download_to)
 
-    except Exception, e:
-        sys.exit(
-            "UNEXPECTED ERROR: It appears the download url '{url}' is no"
-            " longer valid. Please visit '{geolife_page}' and manually"
-            " download the GeoLife dataset from there. Make sure to place"
-            " the ZIP archive in the directory '{abs_path}' and try"
-            " executing this script again.".format(
+    except Exception:
+        logger.exception(
+            "It appears the download url '{url}' is no longer valid. Please"
+            " visit '{geolife_page}' and manually download the GeoLife dataset"
+            " from there. Make sure to place the ZIP archive in the directory"
+            " '{abs_path}' and try executing this script again.".format(
                 url=url, geolife_page=GEOLIFE_DOWNLOAD_PAGE,
                 abs_path=os.path.abspath(download_to)
         ))
+        sys.exit(1)
 
     logger.info("Download complete!")
     return download_to
