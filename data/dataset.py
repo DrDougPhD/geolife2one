@@ -45,9 +45,14 @@ import glob
 import urllib
 import zipfile
 
+# Direct link to the GeoLife ZIP archive.
+# Valid as of 11 July, 2016.
+#GEOLIFE_ZIP_ARCHIVE_URL="https://download.microsoft.com/download/F/4/8/F4894AA5-FDBC-481E-9285-D5F8C4C4F039/Geolife%20Trajectories%201.3.zip"
+GEOLIFE_ZIP_ARCHIVE_URL="https://download.microsoft.com/download/F/4/8/TOTS_INVALID"
 
-GEOLIFE_ZIP_ARCHIVE_URL="https://download.microsoft.com/download/F/4/8/F4894AA5-FDBC-481E-9285-D5F8C4C4F039/Geolife%20Trajectories%201.3.zip"
-
+# If the above URL is no longer valid, navigate to this page and manually
+# download the dataset.
+GEOLIFE_DOWNLOAD_PAGE="https://www.microsoft.com/en-us/download/details.aspx?id=52367"
 
 def verify(directory="."):
     """
@@ -74,12 +79,31 @@ def verify(directory="."):
             print("GeoLife ZIP archive found at '{0}'".format(geolife_zip))
 
         unpack(archive=geolife_zip, to=directory)
-        dataset_root = find_geolife_root(directory)
+
+        try:
+                dataset_root = find_geolife_root(directory)
+        except Exception, e:
+                print(e)
+                traceback.print_exc()
+                print("UNEXPECTED ERROR: Unpacking the ZIP at '{0}' did not"
+                      " result in PLX files. Perhaps '{0}' is not a ZIP"
+                      " archive of the GeoLife files, or the url '{1}' is"
+                      " no longer valid.".format(
+                        geolife_zip, GEOLIFE_ZIP_ARCHIVE_URL
+                ))
+                print("Please visit '{geolife_page}' and manually download"
+                      " the GeoLife dataset. Make sure to place the ZIP"
+                      " archive in this directory - '{abs_path}' - and try"
+                      " executing this script again.".format(
+                        geolife_page=GEOLIFE_DOWNLOAD_PAGE,
+                        abs_path=os.path.abspath(directory)
+                ))
+                sys.exit("Invalid ZIP archive or download URL.")
 
     return dataset_root
 
 
-def find_geolife_root(directory_to_search):
+def find_geolife_root(directory_to_search, just_downloaded=False):
     """
     Walk down tree until a PLT file is encountered. If none is found, raise
     an exception.
@@ -108,7 +132,20 @@ def download(url):
     print("After this run, downloading shouldn't have to be performed again")
     downloader = urllib.URLopener()
     download_to = os.path.join(".", "geolife.zip")
-    downloader.retrieve(url, download_to)
+
+    try:
+        downloader.retrieve(url, download_to)
+    except Exception, e:
+        print("UNEXPECTED ERROR: It appears the download url '{url}' is no"
+              " longer valid. Please visit '{geolife_page}' and manually"
+              " download the GeoLife dataset from there. Make sure to place"
+              " the ZIP archive in this directory - '{abs_path}' - and try"
+              " executing this script again.".format(
+                url=url, geolife_page=GEOLIFE_DOWNLOAD_PAGE,
+                abs_path=os.path.abspath(download_to)
+        ))
+        sys.exit("Invalid download URL.")
+
     print("Download complete!")
     return download_to
 
