@@ -1,6 +1,7 @@
 # Ignore the GeoLife dataset
 data/*
 !data/README.md
+!data/dataset.py
 *.zip
 
 # Byte-compiled / optimized / DLL files
