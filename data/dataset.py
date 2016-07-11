@@ -37,7 +37,7 @@ VERSION
 
 import traceback
 import argparse
-import time
+from datetime import datetime
 import os
 import sys
 import glob
@@ -54,7 +54,6 @@ def verify(directory="."):
     Verify the GeoLife dataset exists in this directory, and if not, make it
     so. Return the dataset's root directory.
     """
-
     # Check if uncompressed PLX files exist within the specified directory
     try:
         dataset_root = find_geolife_root(directory)
@@ -134,40 +133,42 @@ class PLXNotFound(IOError):
 
 
 if __name__ == '__main__':
-  try:
-    start_time = time.time()
+    try:
+        start_time = datetime.now()
 
-    parser = argparse.ArgumentParser(
-      description="Verify, unpack, or download the GeoLife GPS trajectory"
-                  " dataset for further processing."
-    )
-    parser.add_argument('-v', '--verbose', action='store_true', default=False,
-                        help='verbose output')
-    parser.add_argument('-d', '--directory', dest='directory', default=".",
-                        help="directory where GeoLife dataset is stored")
-    args = parser.parse_args()
+        parser = argparse.ArgumentParser(
+          description="Verify, unpack, or download the GeoLife GPS trajectory"
+                      " dataset for further processing."
+        )
+        parser.add_argument('-v', '--verbose', action='store_true',
+                            default=False, help='verbose output')
+        parser.add_argument('-d', '--directory', dest='directory',
+                            default=".",
+                            help="directory where GeoLife dataset is stored")
+        args = parser.parse_args()
 
-    if args.verbose:
-      print(time.asctime())
+        if args.verbose:
+            print(start_time)
 
-    verify(args.directory)
+        verify(args.directory)
 
-    if args.verbose: 
-      print(time.asctime())
-      print('Execution time (minutes): {time}'.format(
-        time=(time.time() - start_time) / 60.0
-      ))
+        if args.verbose:
+            finish_time = datetime.now()
+            print(finish_time)
+            print('Execution time: {time}'.format(
+                time=(finish_time - start_time)
+            ))
 
-    sys.exit(0)
+        sys.exit(0)
 
-  except KeyboardInterrupt, e: # Ctrl-C
-    raise e
+    except KeyboardInterrupt, e: # Ctrl-C
+        raise e
 
-  except SystemExit, e: # sys.exit()
-    raise e
+    except SystemExit, e: # sys.exit()
+        raise e
 
-  except Exception, e:
-    print(e)
-    traceback.print_exc()
-    sys.exit("ERROR, UNEXPECTED EXCEPTION")
+    except Exception, e:
+        print(e)
+        traceback.print_exc()
+        sys.exit("ERROR, UNEXPECTED EXCEPTION")
 
