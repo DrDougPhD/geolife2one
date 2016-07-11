@@ -36,7 +36,6 @@ LICENSE
 
 """
 
-import traceback
 import argparse
 from datetime import datetime
 import os
@@ -49,9 +48,7 @@ logger = logging.getLogger("geolife.dataset")
 
 # Direct link to the GeoLife ZIP archive.
 # Valid as of 11 July, 2016.
-#GEOLIFE_ZIP_ARCHIVE_URL="https://download.microsoft.com/download/F/4/8/F4894AA5-FDBC-481E-9285-D5F8C4C4F039/Geolife%20Trajectories%201.3.zip"
-#GEOLIFE_ZIP_ARCHIVE_URL="http://web.mst.edu/~djmvfb/super_secret/invalid"
-GEOLIFE_ZIP_ARCHIVE_URL="http://web.mst.edu/~djmvfb/super_secret/sample.zip"
+GEOLIFE_ZIP_ARCHIVE_URL="https://download.microsoft.com/download/F/4/8/F4894AA5-FDBC-481E-9285-D5F8C4C4F039/Geolife%20Trajectories%201.3.zip"
 
 # If the above URL is no longer valid, navigate to this page and manually
 # download the dataset.
@@ -90,14 +87,13 @@ def verify(directory="."):
             dataset_root = find_geolife_root(directory)
 
         except Exception:
-            logger.exception(
-                "UNEXPECTED ERROR: Unpacking the ZIP at '{zip}' did not"
-                " result in PLX files. Perhaps '{zip}' is not a ZIP"
-                " archive of the GeoLife files.\n"
-                "Please visit '{geolife_page}' and manually download"
-                " the GeoLife dataset. Make sure to place the ZIP"
-                " archive in the directory '{abs_path}' and try"
-                " executing this script again.".format(
+            logger.error(
+                "Unpacking the ZIP at '{zip}' did not result in PLX files."
+                " Perhaps '{zip}' is not a ZIP archive of the GeoLife files.\n"
+                "Please visit '{geolife_page}' and manually download the"
+                " GeoLife dataset. Make sure to place the ZIP archive in the"
+                " directory '{abs_path}' and try executing this script"
+                " again.".format(
                     zip=geolife_zip, 
                     geolife_page=GEOLIFE_DOWNLOAD_PAGE,
                     abs_path=os.path.abspath(directory)
@@ -143,7 +139,7 @@ def download(url):
         downloader.retrieve(url, download_to)
 
     except Exception:
-        logger.exception(
+        logger.error(
             "It appears the download url '{url}' is no longer valid. Please"
             " visit '{geolife_page}' and manually download the GeoLife dataset"
             " from there. Make sure to place the ZIP archive in the directory"
@@ -241,7 +237,6 @@ if __name__ == '__main__':
         raise e
 
     except Exception, e:
-        logger.critical(e)
-        traceback.print_exc()
-        sys.exit("ERROR, UNEXPECTED EXCEPTION")
+        logger.exception("Something happened and I don't know what to do D:")
+        sys.exit(1)
 
