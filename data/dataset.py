@@ -82,23 +82,22 @@ def verify(directory="."):
 
         try:
                 dataset_root = find_geolife_root(directory)
+
         except Exception, e:
                 print(e)
                 traceback.print_exc()
-                print("UNEXPECTED ERROR: Unpacking the ZIP at '{0}' did not"
-                      " result in PLX files. Perhaps '{0}' is not a ZIP"
-                      " archive of the GeoLife files, or the url '{1}' is"
-                      " no longer valid.".format(
-                        geolife_zip, GEOLIFE_ZIP_ARCHIVE_URL
-                ))
-                print("Please visit '{geolife_page}' and manually download"
-                      " the GeoLife dataset. Make sure to place the ZIP"
-                      " archive in this directory - '{abs_path}' - and try"
-                      " executing this script again.".format(
+                sys.exit(
+                    "UNEXPECTED ERROR: Unpacking the ZIP at '{zip}' did not"
+                    " result in PLX files. Perhaps '{zip}' is not a ZIP"
+                    " archive of the GeoLife files.\n"
+                    "Please visit '{geolife_page}' and manually download"
+                    " the GeoLife dataset. Make sure to place the ZIP"
+                    " archive in the directory '{abs_path}' and try"
+                    " executing this script again.".format(
+                        zip=geolife_zip, 
                         geolife_page=GEOLIFE_DOWNLOAD_PAGE,
                         abs_path=os.path.abspath(directory)
                 ))
-                sys.exit("Invalid ZIP archive or download URL.")
 
     return dataset_root
 
@@ -136,15 +135,15 @@ def download(url):
     try:
         downloader.retrieve(url, download_to)
     except Exception, e:
-        print("UNEXPECTED ERROR: It appears the download url '{url}' is no"
-              " longer valid. Please visit '{geolife_page}' and manually"
-              " download the GeoLife dataset from there. Make sure to place"
-              " the ZIP archive in this directory - '{abs_path}' - and try"
-              " executing this script again.".format(
+        sys.exit(
+            "UNEXPECTED ERROR: It appears the download url '{url}' is no"
+            " longer valid. Please visit '{geolife_page}' and manually"
+            " download the GeoLife dataset from there. Make sure to place"
+            " the ZIP archive in the directory '{abs_path}' and try"
+            " executing this script again.".format(
                 url=url, geolife_page=GEOLIFE_DOWNLOAD_PAGE,
                 abs_path=os.path.abspath(download_to)
         ))
-        sys.exit("Invalid download URL.")
 
     print("Download complete!")
     return download_to
