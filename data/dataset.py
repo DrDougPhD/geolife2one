@@ -48,8 +48,7 @@ logger = logging.getLogger("geolife.dataset")
 
 # Direct link to the GeoLife ZIP archive.
 # Valid as of 11 July, 2016.
-#GEOLIFE_ZIP_ARCHIVE_URL="https://download.microsoft.com/download/F/4/8/F4894AA5-FDBC-481E-9285-D5F8C4C4F039/Geolife%20Trajectories%201.3.zip"
-GEOLIFE_ZIP_ARCHIVE_URL="http://web.mst.edu/~djmvfb/super_secret/sample.zip"
+GEOLIFE_ZIP_ARCHIVE_URL="https://download.microsoft.com/download/F/4/8/F4894AA5-FDBC-481E-9285-D5F8C4C4F039/Geolife%20Trajectories%201.3.zip"
 
 # If the above URL is no longer valid, navigate to this page and manually
 # download the dataset.
@@ -148,7 +147,7 @@ def download(url):
         size_in_MB = int(downloader.headers.get('content-length')) / 1e6
         logger.warning(
             "File size to download: {0:.2f} MB. This may take some time."
-            "Go have a coffee.".format(
+            " Go have a coffee.".format(
                 size_in_MB
         ))
         with open(save_to, "wb") as f:
