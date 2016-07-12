@@ -48,7 +48,8 @@ logger = logging.getLogger("geolife.dataset")
 
 # Direct link to the GeoLife ZIP archive.
 # Valid as of 11 July, 2016.
-GEOLIFE_ZIP_ARCHIVE_URL="https://download.microsoft.com/download/F/4/8/F4894AA5-FDBC-481E-9285-D5F8C4C4F039/Geolife%20Trajectories%201.3.zip"
+#GEOLIFE_ZIP_ARCHIVE_URL="https://download.microsoft.com/download/F/4/8/F4894AA5-FDBC-481E-9285-D5F8C4C4F039/Geolife%20Trajectories%201.3.zip"
+GEOLIFE_ZIP_ARCHIVE_URL="http://web.mst.edu/~djmvfb/super_secret/sample.zip"
 
 # If the above URL is no longer valid, navigate to this page and manually
 # download the dataset.
@@ -63,7 +64,7 @@ def verify(directory="."):
     try:
         dataset_root = find_geolife_root(directory)
 
-    except PLXNotFound, e:
+    except PLXNotFound:
         # If no PLX files exist in the directory, then check if a ZIP archive
         # exists. If no ZIP archive exists, download it.
         logger.warning("GeoLife PLX files not found in '{0}'. Checking for ZIP"
@@ -132,10 +133,19 @@ def download(url):
     logger.info(
         "After this run, downloading shouldn't have to be performed again"
     )
-    downloader = urllib.URLopener()
+
     download_to = os.path.join(".", "geolife.zip")
 
     try:
+        progress_downloader(url=url, save_to=download_to)
+
+    except ImportError:
+        # You don't have progressbar2 installed, so you won't get a pretty
+        # progress bar to tell you how far along you are in the download.
+        # You can install it like so:
+        #   $ sudo pip install progressbar2
+        logger.warning("This may take some time. Go have a coffee.")
+        downloader = urllib.URLopener()
         downloader.retrieve(url, download_to)
 
     except Exception:
@@ -151,6 +161,47 @@ def download(url):
 
     logger.info("Download complete!")
     return download_to
+
+
+def progress_downloader(url, save_to):
+    """
+    Another downloader function, but with a progress bar so you don't have to
+    stare at a blank screen.
+
+    e.g.
+     71% |#################       | Elapsed Time: 0:00:45 | ETA: 0:00:15 683.9 KiB/s
+    """
+    import requests
+    from progressbar import ProgressBar
+    from progressbar import Percentage
+    from progressbar import Bar
+    from progressbar import Timer
+    from progressbar import ETA
+    from progressbar import AdaptiveTransferSpeed
+
+    downloader = requests.get(url, stream=True)
+    download_size = int(downloader.headers.get('content-length'))
+    amount_downloaded = 0
+
+    widgets = [
+        Percentage(),
+        ' ', Bar(),
+        ' ', Timer(),
+        ' | ', ETA(),
+        ' ', AdaptiveTransferSpeed(),
+    ]
+    download_progress = ProgressBar(widgets=widgets, max_value=download_size)
+    download_progress.start()
+
+    with open(save_to, "wb") as f:
+        for chunk in downloader.iter_content(chunk_size=4098):
+            if chunk:
+                f.write(chunk)
+                f.flush()
+                amount_downloaded += len(chunk)
+                download_progress.update(amount_downloaded)
+
+    download_progress.finish()
 
 
 def unpack(archive, to):
