@@ -37,11 +37,11 @@ LICENSE
 """
 
 import argparse
+import requests
 from datetime import datetime
 import os
 import sys
 import glob
-import urllib
 import zipfile
 import logging
 logger = logging.getLogger("geolife.dataset")
@@ -134,19 +134,28 @@ def download(url):
         "After this run, downloading shouldn't have to be performed again"
     )
 
-    download_to = os.path.join(".", "geolife.zip")
+    save_to = os.path.join(".", "geolife.zip")
+    downloader = requests.get(url, stream=True)
 
     try:
-        progress_downloader(url=url, save_to=download_to)
+        progress_downloader(downloader, save_to=save_to)
 
     except ImportError:
         # You don't have progressbar2 installed, so you won't get a pretty
         # progress bar to tell you how far along you are in the download.
         # You can install it like so:
         #   $ sudo pip install progressbar2
-        logger.warning("This may take some time. Go have a coffee.")
-        downloader = urllib.URLopener()
-        downloader.retrieve(url, download_to)
+        size_in_MB = int(downloader.headers.get('content-length')) / 1e6
+        logger.warning(
+            "File size to download: {0:.2f} MB. This may take some time."
+            "Go have a coffee.".format(
+                size_in_MB
+        ))
+        with open(save_to, "wb") as f:
+            for chunk in downloader.iter_content(chunk_size=4098):
+                if chunk:
+                    f.write(chunk)
+                    f.flush()
 
     except Exception:
         logger.error(
@@ -155,15 +164,15 @@ def download(url):
             " from there. Make sure to place the ZIP archive in the directory"
             " '{abs_path}' and try executing this script again.".format(
                 url=url, geolife_page=GEOLIFE_DOWNLOAD_PAGE,
-                abs_path=os.path.abspath(download_to)
+                abs_path=os.path.abspath(save_to)
         ))
         sys.exit(1)
 
     logger.info("Download complete!")
-    return download_to
+    return save_to
 
 
-def progress_downloader(url, save_to):
+def progress_downloader(downloader, save_to):
     """
     Another downloader function, but with a progress bar so you don't have to
     stare at a blank screen.
@@ -171,7 +180,6 @@ def progress_downloader(url, save_to):
     e.g.
      71% |#################       | Elapsed Time: 0:00:45 | ETA: 0:00:15 683.9 KiB/s
     """
-    import requests
     from progressbar import ProgressBar
     from progressbar import Percentage
     from progressbar import Bar
@@ -179,7 +187,6 @@ def progress_downloader(url, save_to):
     from progressbar import ETA
     from progressbar import AdaptiveTransferSpeed
 
-    downloader = requests.get(url, stream=True)
     download_size = int(downloader.headers.get('content-length'))
     amount_downloaded = 0
 
