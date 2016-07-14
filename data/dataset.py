@@ -85,7 +85,7 @@ def verify(directory="."):
         zip_files = glob.glob(os.path.join(directory, "*.zip"))
         if not zip_files:
             logger.warning("No GeoLife ZIP archive. Proceeding with download.")
-            geolife_zip = download(url=GEOLIFE_ZIP_ARCHIVE_URL)
+            geolife_zip = download(url=GEOLIFE_ZIP_ARCHIVE_URL, to=directory)
 
         else:
             geolife_zip = zip_files[0]
@@ -136,7 +136,7 @@ def find_geolife_root(directory_to_search, just_downloaded=False):
     return geolife_root
 
 
-def download(url):
+def download(url, to):
     """
     Download the GeoLife dataset from Microsoft Research.
     """
@@ -145,7 +145,7 @@ def download(url):
         "After this run, downloading shouldn't have to be performed again"
     )
 
-    save_to = os.path.join(".", "geolife.zip")
+    save_to = os.path.join(to, "geolife.zip")
     downloader = requests.get(url, stream=True)
 
     try:

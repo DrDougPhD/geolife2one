@@ -14,7 +14,7 @@ ARGUMENTS
   -v, --verbose         verbose output
   -d DIRECTORY, --directory DIRECTORY
                         directory where GeoLife dataset is stored
-                        (default: ./)
+                        (default: ./data)
   -l LOGFILE, --log-file LOGFILE
                         log file to record all debug messages 
                         (default: ./geolife2one.log)
@@ -52,7 +52,7 @@ def parse_args():
     parser.add_argument('-v', '--verbose', action='store_true',
                         default=False, help='verbose output')
     parser.add_argument('-d', '--directory', dest='directory',
-                        default=".",
+                        default="./data",
                         help="directory where GeoLife dataset is stored")
     parser.add_argument('-l', '--log-file', dest='logfile',
                         default="./geolife2one.log",
