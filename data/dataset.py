@@ -21,6 +21,10 @@ ARGUMENTS
   -v, --verbose         verbose output
   -d DIRECTORY, --directory DIRECTORY
                         directory where GeoLife dataset is stored
+                        (default: ./)
+  -l LOGFILE, --log-file LOGFILE
+                        log file to record all debug messages 
+                        (default: ./geolife2one.dataset.log)
 
 AUTHOR
 
@@ -43,8 +47,7 @@ import os
 import sys
 import glob
 import zipfile
-import logging
-logger = logging.getLogger("geolife.dataset")
+import loghelper
 from progressbar import ProgressBar
 from progressbar import Percentage
 from progressbar import Bar
@@ -223,52 +226,29 @@ class PLXNotFound(IOError):
         IOError.__init__(self,*args,**kwargs)
 
 
-def setup_logger(args):
-    # create logger with 'spam_application'
-    logger.setLevel(logging.DEBUG)
-    # create file handler which logs even debug messages
-    fh = logging.FileHandler('geolife.dataset.log')
-    fh.setLevel(logging.DEBUG)
-    # create console handler with a higher log level
-    ch = logging.StreamHandler()
-
-    if args.verbose:
-        ch.setLevel(logging.DEBUG)
-
-    else:
-        ch.setLevel(logging.INFO)
-
-    # create formatter and add it to the handlers
-    fh.setFormatter(logging.Formatter(
-      '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    ))
-    ch.setFormatter(logging.Formatter(
-      '%(levelname)s - %(message)s'
-    ))
-    # add the handlers to the logger
-    logger.addHandler(fh)
-    logger.addHandler(ch)
-
-
 if __name__ == '__main__':
+    start_time = datetime.now()
+
+    parser = argparse.ArgumentParser(
+        description="Verify, unpack, or download the GeoLife GPS trajectory"
+                    " dataset for further processing."
+    )
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        default=False, help='verbose output')
+    parser.add_argument('-d', '--directory', dest='directory',
+                        default=".",
+                        help="directory where GeoLife dataset is stored")
+    parser.add_argument('-l', '--log-file', dest='logfile',
+                        default="./geolife2one.dataset.log",
+                        help="log file to record all debug messages")
+    args = parser.parse_args()
+
+    logger = loghelper.setup(args)
+
     try:
-        start_time = datetime.now()
-
-        parser = argparse.ArgumentParser(
-          description="Verify, unpack, or download the GeoLife GPS trajectory"
-                      " dataset for further processing."
-        )
-        parser.add_argument('-v', '--verbose', action='store_true',
-                            default=False, help='verbose output')
-        parser.add_argument('-d', '--directory', dest='directory',
-                            default=".",
-                            help="directory where GeoLife dataset is stored")
-        args = parser.parse_args()
-
-        setup_logger(args)
         logger.debug(start_time)
 
-        verify(args.directory)
+        dataset_root = verify(args.directory)
 
         finish_time = datetime.now()
         logger.debug(finish_time)
