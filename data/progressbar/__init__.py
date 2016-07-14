@@ -1,6 +1,7 @@
 from datetime import date
 
-from progressbar.widgets import (
+#from progressbar.widgets import (
+from widgets import (
     Timer,
     ETA,
     AdaptiveETA,

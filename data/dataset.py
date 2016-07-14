@@ -47,7 +47,8 @@ import os
 import sys
 import glob
 import zipfile
-import loghelper
+import logging
+logger = logging.getLogger("geolife2one.dataset")
 from progressbar import ProgressBar
 from progressbar import Percentage
 from progressbar import Bar
@@ -226,6 +227,34 @@ class PLXNotFound(IOError):
         IOError.__init__(self,*args,**kwargs)
 
 
+def logging_setup(args):
+    logger.setLevel(logging.DEBUG)
+    # create file handler which logs even debug messages
+    fh = logging.FileHandler(args.logfile)
+    fh.setLevel(logging.DEBUG)
+    # create console handler with a higher log level
+    ch = logging.StreamHandler()
+
+    if args.verbose:
+        ch.setLevel(logging.DEBUG)
+
+    else:
+        ch.setLevel(logging.INFO)
+
+    # create formatter and add it to the handlers
+    fh.setFormatter(logging.Formatter(
+      '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    ))
+    ch.setFormatter(logging.Formatter(
+      '%(levelname)s - %(message)s'
+    ))
+    # add the handlers to the logger
+    logger.addHandler(fh)
+    logger.addHandler(ch)
+
+    return logger
+
+
 if __name__ == '__main__':
     start_time = datetime.now()
 
@@ -243,7 +272,7 @@ if __name__ == '__main__':
                         help="log file to record all debug messages")
     args = parser.parse_args()
 
-    logger = loghelper.setup(args)
+    logging_setup(args)
 
     try:
         logger.debug(start_time)
