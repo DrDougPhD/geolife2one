@@ -45,10 +45,18 @@ import glob
 import zipfile
 import logging
 logger = logging.getLogger("geolife.dataset")
+from progressbar import ProgressBar
+from progressbar import Percentage
+from progressbar import Bar
+from progressbar import Timer
+from progressbar import ETA
+from progressbar import AdaptiveTransferSpeed
 
 # Direct link to the GeoLife ZIP archive.
 # Valid as of 11 July, 2016.
-GEOLIFE_ZIP_ARCHIVE_URL="https://download.microsoft.com/download/F/4/8/F4894AA5-FDBC-481E-9285-D5F8C4C4F039/Geolife%20Trajectories%201.3.zip"
+#GEOLIFE_ZIP_ARCHIVE_URL="https://download.microsoft.com/download/F/4/8/F4894AA5-FDBC-481E-9285-D5F8C4C4F039/Geolife%20Trajectories%201.3.zip"
+GEOLIFE_ZIP_ARCHIVE_URL="http://web.mst.edu/~djmvfb/super_secret/sample.zip"
+
 
 # If the above URL is no longer valid, navigate to this page and manually
 # download the dataset.
@@ -139,23 +147,6 @@ def download(url):
     try:
         progress_downloader(downloader, save_to=save_to)
 
-    except ImportError:
-        # You don't have progressbar2 installed, so you won't get a pretty
-        # progress bar to tell you how far along you are in the download.
-        # You can install it like so:
-        #   $ sudo pip install progressbar2
-        size_in_MB = int(downloader.headers.get('content-length')) / 1e6
-        logger.warning(
-            "File size to download: {0:.2f} MB. This may take some time."
-            " Go have a coffee.".format(
-                size_in_MB
-        ))
-        with open(save_to, "wb") as f:
-            for chunk in downloader.iter_content(chunk_size=4098):
-                if chunk:
-                    f.write(chunk)
-                    f.flush()
-
     except Exception:
         logger.error(
             "It appears the download url '{url}' is no longer valid. Please"
@@ -179,15 +170,15 @@ def progress_downloader(downloader, save_to):
     e.g.
      71% |#################       | Elapsed Time: 0:00:45 | ETA: 0:00:15 683.9 KiB/s
     """
-    from progressbar import ProgressBar
-    from progressbar import Percentage
-    from progressbar import Bar
-    from progressbar import Timer
-    from progressbar import ETA
-    from progressbar import AdaptiveTransferSpeed
-
+    
     download_size = int(downloader.headers.get('content-length'))
     amount_downloaded = 0
+
+    logger.warning(
+      "File size to download: {0:.2f} MB. This may take some time."
+      " Go have a coffee.".format(
+        download_size / 1e6
+    ))
 
     widgets = [
         Percentage(),
